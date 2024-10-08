@@ -9,9 +9,13 @@ all:
 	$(COMPILER) $(COMPILER_FLAGS) -o $(BIN) $(FILE) 
 	objdump -S $(BIN) > $(OBJDUMP)
 
-test:
+qemu:
 	qemu-x86_64-static -cpu SapphireRapids $(BIN)
 
 sde:
 	$(SDE)/sde -spr -- ./$(BIN)
+
+sde-gdb:
+	$(SDE)/sde -debug -spr -- ./$(BIN) & \
+		echo  "Execute : gdb $(BIN) -ex \"target remote  localhost:<PORT>\""
 
