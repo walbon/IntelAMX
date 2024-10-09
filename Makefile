@@ -5,7 +5,9 @@ BIN  = teste
 OBJDUMP = teste.obj
 SDE = /opt/Intel/sde
 
-all:
+all: build sde
+
+build:
 	$(COMPILER) $(COMPILER_FLAGS) -o $(BIN) $(FILE) 
 	objdump -S $(BIN) > $(OBJDUMP)
 
@@ -17,5 +19,5 @@ sde:
 
 sde-gdb:
 	$(SDE)/sde -debug -spr -- ./$(BIN) & \
-		echo  "Execute : gdb $(BIN) -ex \"target remote  localhost:<PORT>\""
+	echo  "Execute : gdb $(BIN) -ex \"target remote  localhost:<PORT>\""
 
