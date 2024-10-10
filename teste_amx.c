@@ -5,12 +5,12 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 
 #define MAX 1024
 #define MAX_ROWS 16
 #define MAX_COLS 64
 #define STRIDE 64
-#define ARCH_GET_XCOMP_PERM     0x1022
 #define ARCH_REQ_XCOMP_PERM     0x1023
 #define XFEATURE_XTILECFG       17
 #define XFEATURE_XTILEDATA      18
@@ -98,6 +98,9 @@ int main() {
    int rows  = MAX_ROWS;
    int colsb = MAX_COLS;
 
+   struct timespec start, end;
+   double elapsed_time;
+
    // Request permission to linux kernel to run AMX 
    if (!set_tiledata_use())
       exit(-1);
@@ -107,13 +110,22 @@ int main() {
     init_tile_config(&tile_data);
 
     int address[49152*12] = {0};
+
+
+    // Medir o tempo antes de chamar a primeira função
+    clock_gettime(CLOCK_MONOTONIC, &start);
     __asm__ __volatile__(
 #include "./include_tileloadds.h"
         :
         :"r" (address)
         :
     );
+    clock_gettime(CLOCK_MONOTONIC, &end);
 
+    // Calcular o tempo em segundos
+    elapsed_time = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
+
+    printf("Tempo gasto: %f segundos\n", elapsed_time);
 
     printf("\n Load FINISHED\n");
     return 0;

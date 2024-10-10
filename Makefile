@@ -5,7 +5,12 @@ BIN  = teste
 OBJDUMP = teste.obj
 SDE = /opt/Intel/sde
 
-all: build sde
+all: fill build sde
+	@printf "Number of tileloads "
+	@grep -c  tileloadd include_tileloadds.h
+
+fill:
+	@python ./include_fill.py
 
 build:
 	$(COMPILER) $(COMPILER_FLAGS) -o $(BIN) $(FILE) 
