@@ -55,7 +55,7 @@ typedef struct __tile_config
 static void init_tile_config (__tilecfg *tileinfo)
 {
   int i;
-  tileinfo->palette_id = 1;
+  tileinfo->palette_id = 1; 
   tileinfo->start_row = 0;
 
   for (i = 0; i < 1; ++i)
@@ -109,17 +109,12 @@ int main() {
 
     init_tile_config(&tile_data);
 
-    int address[49152*12] = {0};
+   //__bf16 address[2*1024*1024] = {0};
+    int8_t address[2*1024*1024] = {0};
 
-
-    // Medir o tempo antes de chamar a primeira função
+   // Medir o tempo antes de chamar a primeira função
     clock_gettime(CLOCK_MONOTONIC, &start);
-    __asm__ __volatile__(
 #include "./include_tileloadds.h"
-        :
-        :"r" (address)
-        :
-    );
     clock_gettime(CLOCK_MONOTONIC, &end);
 
     // Calcular o tempo em segundos
@@ -127,7 +122,7 @@ int main() {
 
     printf("Tempo gasto: %f segundos\n", elapsed_time);
 
-    printf("\n Load FINISHED\n");
+    printf("\nLoad FINISHED\n");
     return 0;
 }
 

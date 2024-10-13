@@ -20,7 +20,7 @@ qemu:
 	qemu-x86_64-static -cpu SapphireRapids $(BIN)
 
 sde:
-	$(SDE)/sde -spr -- ./$(BIN)
+	$(SDE)/sde -spr -ptr-check -- ./$(BIN)
 
 sde-gdb:
 	$(SDE)/sde -debug -spr -- ./$(BIN) & \

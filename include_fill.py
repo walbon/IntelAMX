@@ -1,18 +1,36 @@
 
-conteudo = ""
-arquivo = "include_tileloadds.h"
+CACHE_LINE_SIZE = 64  #  Cache line size 64bytes
+TILE_LOADS = 1_000_000
+L1_CACHE_SIZE= 48*1024
+ADDRESS_LIMIT = 2 * 1024 * 1024 # 2MB
+MATRIX_SIZE =  1024 # 1 KB  =  16 Lin * 64 bytes
+BATCH_SIZE = 1_000
 
-clsize = 64
-matsize = 1024
-with open(arquivo, "w") as file:
-    for j in range(50):
-        for i in range(0, matsize*50, clsize):   #64 tamanho do Cache Line
-            conteudo+=(f"\"mov ${hex(i)}, %%rdx\\n\"\n")
-            conteudo+=("\"tileloadd (%0, %%rdx, 1),%%tmm0\\n\"\n")
-            
-        for i in range(matsize*50, 0, -clsize):
-            conteudo+=(f"\"mov ${hex(i)}, %%rdx\\n\"\n")
-            conteudo+=("\"tileloadd (%0, %%rdx, 1),%%tmm0\\n\"\n")
+_file = "include_tileloadds.h"
+content = ""
+offset=0x00
 
-    file.write(conteudo + "\n")
+with open(_file, "w") as file:
+    WROTE=0
+    content+=f"_tile_loadd (0, address+{hex(offset)}, 1);"
+    for i in range(TILE_LOADS):
+        WROTE+=1
+        offset = (i * L1_CACHE_SIZE) % ADDRESS_LIMIT
+        if offset + MATRIX_SIZE > ADDRESS_LIMIT:
+            offset = offset % ADDRESS_LIMIT
+        content+="""\n__asm__ __volatile__( """
+        content+=(" \"tileloadd %0, %%tmm0\\n\"")
+        content+=f""":: \"m\"(*(address+{hex(offset)})) );"""
+        if  WROTE % BATCH_SIZE == 0:
+            file.writelines(content)
+            content = []
+    file.writelines(content)
 
+print(f"""
+Build with following parameters:
+    TILE_LOADS={TILE_LOADS}
+    ADDRESS_LIMIT={ADDRESS_LIMIT}
+    MATRIX_SIZE={MATRIX_SIZE}
+    L1_CACHE_SIZE={L1_CACHE_SIZE}
+    file output={_file}
+""")
