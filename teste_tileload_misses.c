@@ -109,20 +109,17 @@ int main() {
 
     init_tile_config(&tile_data);
 
-   //__bf16 address[2*1024*1024] = {0};
-    int8_t address[2*1024*1024] = {0};
+    int8_t address[2*1024*1024] = {0}; //  2MB
 
    // Medir o tempo antes de chamar a primeira função
     clock_gettime(CLOCK_MONOTONIC, &start);
-#include "./include_tileloadds.h"
+    #include "./include_tileload_misses.h"
     clock_gettime(CLOCK_MONOTONIC, &end);
 
     // Calcular o tempo em segundos
     elapsed_time = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
+     printf("TILELOADS: Tempo gasto: %f segundos\n", elapsed_time);
 
-    printf("Tempo gasto: %f segundos\n", elapsed_time);
-
-    printf("\nLoad FINISHED\n");
     return 0;
 }
 
