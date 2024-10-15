@@ -1,31 +1,38 @@
+#!/usr/bin/env gmake
+
 COMPILER = gcc
 COMPILER_FLAGS = -O0 -g3 -static -mamx-tile -mamx-bf16 -mamx-int8
-FILE = teste_tileload_misses.c
-BIN  = teste_tileload_misses
-OBJDUMP = teste_tileload_misses.obj
+NAMES := tileload_misses tileload_nomisses  
 SDE = /opt/Intel/sde
 REPEAT = 1
 
-all: fill build sde
-	@printf "Number of tileloads "
-	@grep -c  tileloadd include_tileload_misses.h
+all: fill  build sde
 
 fill:
-	@python ./include_load_misses.py
+	$(foreach name,  $(NAMES), \
+		echo "- Creating Include files : include_$(name).h ...";\
+		python ./include_$(name).py && \
+		printf "DONE \n" || printf "ERROR\n";\
+	)
 
 build:
-	$(COMPILER) $(COMPILER_FLAGS) -o $(BIN) $(FILE) 
-	objdump -S $(BIN) > $(OBJDUMP)
-
-qemu:
-	qemu-x86_64-static -cpu SapphireRapids $(BIN)
+	$(foreach name,  $(NAMES), \
+		echo "- Build : $(name) ...";\
+		$(COMPILER) $(COMPILER_FLAGS) -o $(name) teste_$(name).c \
+	    && objdump -S $(name) > $(name).obj && \
+		printf "DONE \n" || printf "ERROR\n";\
+	)
 
 sde:
-	$(SDE)/sde -spr -ptr-check -- perf stat -e L1-dcache-load-misses -r $(REPEAT) -o $(BIN).json --json ./$(BIN)
-
+	$(foreach name,  $(NAMES), \
+		echo "- SDE : $(name) ...";\
+		$(SDE)/sde -spr -ptr-check -- perf stat -e cache-references,cache-misses,cycles,instructions,L1-dcache-load-misses,L1-dcache-loads,L1-dcache-stores -r $(REPEAT) -o $(name).json --json ./$(name) && \
+		printf "DONE \n" || printf "ERROR\n";\
+	)
+	
 sde-gdb:
-	$(SDE)/sde -debug -spr -- ./$(BIN) & \
-	echo  "Execute : gdb $(BIN) -ex \"target remote  localhost:<PORT>\""
+	$(SDE)/sde -debug -spr -- ./$(TARGET) &
+
 clean:
-	rm -rf *obj *json  $(BIN) include_*.h
+	rm -rf *obj *json include_*.h $(NAMES)
 
