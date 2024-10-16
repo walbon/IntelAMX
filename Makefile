@@ -4,7 +4,7 @@ COMPILER = gcc
 COMPILER_FLAGS = -O0 -g3 -static -mamx-tile -mamx-bf16 -mamx-int8
 NAMES := tileload_misses tileload_nomisses tilemultiply
 SDE = /opt/Intel/sde
-REPEAT = 1
+REPEAT = 100
 
 all: fill  build
 
@@ -26,14 +26,14 @@ build: fill
 run:
 	$(foreach name,  $(NAMES), \
 		echo "- SDE : $(name) ...";\
-		taskset -c 1 perf stat -e cache-references,cache-misses,cycles,instructions,L1-dcache-load-misses,L1-dcache-loads,L1-dcache-stores -r $(REPEAT) -o $(name).json --json ./$(name) && \
+		taskset -c 1 perf stat -r $(REPEAT) -o $(name).json --json ./$(name) && \
 		printf "DONE \n\n" || printf "ERROR\n\n";\
 	)
 	
 sde:
 	$(foreach name,  $(NAMES), \
 		echo "- SDE : $(name) ...";\
-		$(SDE)/sde -spr -ptr-check -- perf stat -e cache-references,cache-misses,cycles,instructions,L1-dcache-load-misses,L1-dcache-loads,L1-dcache-stores -r $(REPEAT) -o $(name).json --json ./$(name) && \
+		$(SDE)/sde -spr -ptr-check -- perf stat -e cache-references,cache-misses,cycles,instructions,L1-dcache-load-misses,L1-dcache-loads,L1-dcache-stores -r $(REPEAT) -o $(name).perf ./$(name) && \
 		printf "DONE \n\n" || printf "ERROR\n\n";\
 	)
 	
