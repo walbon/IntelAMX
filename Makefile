@@ -26,7 +26,7 @@ build: fill
 run:
 	$(foreach name,  $(NAMES), \
 		echo "- SDE : $(name) ...";\
-		perf stat -e cache-references,cache-misses,cycles,instructions,L1-dcache-load-misses,L1-dcache-loads,L1-dcache-stores -r $(REPEAT) -o $(name).json --json ./$(name) && \
+		taskset -c 1 perf stat -e cache-references,cache-misses,cycles,instructions,L1-dcache-load-misses,L1-dcache-loads,L1-dcache-stores -r $(REPEAT) -o $(name).json --json ./$(name) && \
 		printf "DONE \n\n" || printf "ERROR\n\n";\
 	)
 	
